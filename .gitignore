@@ -1,0 +1,81 @@
+# ============================================================
+# Showcase Repository .gitignore
+# ============================================================
+
+# OS metadata
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*~
+
+# Windsurf / Cursor / AI agents
+.windsurf/
+.cursor/
+.aider*
+
+# Temporary / scratch files
+*.tmp
+*.bak
+*.orig
+*.log
+*~
+extract_resume.ps1
+resume_extracted.txt
+resume.docx
+
+# Image processing leftovers
+*.psd
+*.ai
+*.xcf
+*.sketch
+
+# Video render leftovers
+*.prproj
+*.prproj.lock
+Adobe Premiere Pro Auto-Save/
+*.veg
+*.veg.bak
+
+# Compressed archives (avoid accidentally committing exports)
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+
+# Sensitive / private notes
+NOTES.md
+TODO-private.md
+private/
+drafts/
+scratch/
+
+# Node (in case you ever add tooling)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (in case of doc-build scripts)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build outputs
+dist/
+build/
+out/

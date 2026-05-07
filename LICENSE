@@ -1,0 +1,87 @@
+PROPRIETARY SOFTWARE LICENSE
+All Rights Reserved
+
+Copyright (c) 2026 Mark Anthony Resoso
+
+================================================================================
+
+NOTICE
+This repository contains documentation, system overviews, screenshots, case
+studies, architectural diagrams, and other materials (collectively, the "Work")
+authored by Mark Anthony Resoso ("the Author").
+
+The Work is provided publicly for the sole purpose of professional portfolio
+demonstration, employer evaluation, and client reference. Public visibility of
+this repository does NOT constitute a grant of any license, permission, or
+right beyond what is explicitly stated below.
+
+================================================================================
+
+PERMITTED USES
+
+You MAY:
+  1. View and read the contents of this repository in their original form.
+  2. Reference this repository (via direct link to the GitHub URL) when
+     evaluating the Author for employment, contract work, or collaboration.
+  3. Share a link to this repository for the purposes described in (2).
+
+================================================================================
+
+PROHIBITED USES
+
+You MAY NOT, without the prior, explicit, written consent of the Author:
+  1. Copy, reproduce, redistribute, mirror, or rehost any portion of the Work,
+     in whole or in part, in any medium.
+  2. Modify, adapt, translate, or create derivative works based on the Work.
+  3. Reverse engineer, decompile, or attempt to reconstruct the source code of
+     any system described in the Work.
+  4. Use the Work, or any portion thereof, for commercial purposes, including
+     but not limited to: incorporation into commercial products, training of
+     machine learning models, or resale.
+  5. Use the Author's name, likeness, or branding to endorse, promote, or
+     associate with any product, service, or organization.
+  6. Republish the Work or any portion thereof on any website, platform,
+     publication, or training dataset.
+
+================================================================================
+
+CONFIDENTIAL CLIENT WORK
+
+Two of the projects documented in this repository ("Local Computer Retail
+Business" and "Corporate Egg Production and Delivery Business") describe
+systems built under confidentiality agreements with private clients. The
+client names, proprietary business logic, internal data structures, and
+deployment specifics are intentionally omitted or generalized.
+
+The high-level descriptions provided are published with the understanding
+that no confidential information is disclosed. Any attempt to identify,
+contact, or solicit the underlying clients based on information in this
+repository is strictly prohibited.
+
+================================================================================
+
+NO WARRANTY
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS
+IN THE WORK.
+
+================================================================================
+
+CONTACT
+
+For licensing inquiries, collaboration requests, or permission to use any
+portion of this Work beyond the permitted uses above, contact:
+
+  Mark Anthony Resoso
+  Email:    resoso.mark.anthony27@gmail.com
+  Portfolio: https://antonyorss.me/
+  GitHub:   https://github.com/Antonyo27
+
+================================================================================
+
+By accessing this repository, you acknowledge that you have read, understood,
+and agreed to be bound by the terms of this license.
