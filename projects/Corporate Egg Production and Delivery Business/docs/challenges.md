@@ -4,56 +4,43 @@ A selection of the harder problems encountered while building this system and ho
 
 ---
 
-## 1. Designing Blind Receiving as a First-Class Workflow
+## 1. Designing the Twin Reconciliation Checkpoints
 
-**The Problem.** Conceptually, blind receiving is simple: don't show the receiver what was dispatched until after they've counted. Operationally, it's tricky — the system needs to *know* the dispatched quantity (to compute the discrepancy) but must reliably *hide* it until the receiver commits.
+**The Problem.** In a high-volume poultry business, discrepancies can happen at multiple points: during farm-to-warehouse delivery (upstream) or warehouse sorting-to-ending counts (downstream). Finding a leak requires isolating these two points so they don't muddy each other's audit math.
 
-**The Solution.** Receiving was modeled as a **two-phase commit**. Phase one: the receiver enters their physical count and categorization. The dispatch quantity is server-side only and never serialized to the receiver's view. Phase two: only after submission does the system render a side-by-side reconciliation showing dispatch vs. receive, with the discrepancy highlighted and persisted as part of the warehouse activity log. The receiver's count is **immutable** once committed — fixing a "miscount" requires an explicit, audited adjustment, not a silent edit.
-
----
-
-## 2. Multi-Location Dispatch and Receive State
-
-**The Problem.** Inventory in motion (dispatched but not yet received) is a real, accountable state — not a placeholder. If a dispatch leaves Farm A but never arrives at Warehouse B, that loss has to be visible and attributable. Naively decrementing farm inventory and waiting for the warehouse to increment its inventory loses the in-transit state entirely.
-
-**The Solution.** Dispatch and receive are modeled as **paired event records** with explicit `dispatched`, `in_transit`, and `received` states. Inventory in transit is its own balance, attributable to the dispatching farm until the warehouse commits the receive. A dispatch that's been in-transit beyond a configurable threshold is surfaced on the management dashboard as an investigable anomaly.
+**The Solution.** The system splits validation into two separate checkpoints:
+- **Checkpoint A (Upstream)**: Compares the total farm delivery count against the categorized warehouse total (including cracked and disposed eggs). If they don't balance, the system instantly flags a delivery count variance.
+- **Checkpoint B (Downstream)**: Tracks sorting yields against mortality logs and inventory counts to identify downstream wastage or stock losses.
+By separating these checks, the owner can immediately pinpoint whether an discrepancy happened during transportation or during warehouse handling.
 
 ---
 
-## 3. PDF Dispatch Receipts That Tie the Whole Chain Together
+## 2. Rural-Internet Resilience (Save-State Form Pattern)
 
-**The Problem.** A printed dispatch receipt is the physical artifact that travels with the goods. It needs to be unambiguously linked to the dispatch event in the system, hard to forge, and easy for warehouse staff to scan-and-verify on arrival.
+**The Problem.** The system is operated in agricultural and warehouse locations where internet connectivity is frequently unstable or slow. Standard AJAX/Inertia requests can hang, fail silently, or cause duplicate submissions if the user clicks "Save" multiple times out of frustration, resulting in corrupted double-entries.
 
-**The Solution.** Dispatch receipts are generated server-side via **`barryvdh/laravel-dompdf`** with an embedded **QR code** (via `simplesoftwareio/simple-qrcode`) encoding the dispatch event ID. Warehouse staff can verify the receipt during receiving by scanning the code, and the system can immediately confirm the dispatch is genuine and unreceived. The PDF is a re-renderable artifact, not a stored binary, so it can be regenerated on demand without sync drift.
-
----
-
-## 4. Hierarchical RBAC Across Farm, Warehouse, and Management
-
-**The Problem.** A role-based system that's too coarse leaves staff with access they shouldn't have. Too fine, and the role list explodes into unmaintainable permission combinations.
-
-**The Solution.** A **hierarchical role architecture** mapped directly to the organizational structure: Owner / Superadmin at the top, with Farm Operations and Warehouse Management as separate functional tiers, each scoped to their physical location. Staff in the farm module cannot see warehouse internals; warehouse staff cannot retroactively edit dispatch records. Cross-cutting concerns (reports, dashboards) are gated to management roles. The role definitions live in code and migrate with the rest of the schema, so role changes are versioned, not ad-hoc.
+**The Solution.** We established a reusable **Save-State form pattern** at the core of all user input components:
+1. Upon submission, the form immediately locks the input fields and enters a `Saving...` state.
+2. The submit button is disabled and replaced by a loading skeleton.
+3. If the server response returns successfully, the state changes to `Saved` with a green indicator badge that fades out.
+4. If the request times out or encounters a connection error, the form changes to `Failed` with a red alert and enables a "Retry" button, preserving all user inputs so they can attempt to resubmit once connection is restored.
 
 ---
 
-## 5. Reports That Owners Will Actually Use
+## 3. Unit Conversion Integrity (Operational Trays vs. Accounting Eggs)
 
-**The Problem.** Owners don't read 40-page PDFs. They want to know, at a glance, which farm is over- or under-performing, where the wastage is, and whether anything actionable changed since yesterday.
+**The Problem.** Farm and warehouse staff handle eggs in physical trays (usually 30 eggs per tray). Logging individual loose eggs would be tedious and error-prone. However, cracked and disposed losses are often counted as individual eggs. Performing all math on trays would lead to rounding errors, while forcing users to input in eggs would ruin the data entry flow.
 
-**The Solution.** Two-tier reporting:
-
-- **Executive dashboard** — live, interactive, **Chart.js**-powered visualizations comparing farms, surfacing mortality and breakage trends, and flagging anomalies. This is the daily-use surface.
-- **Formal reports** — PDF and Excel exports for compliance, accounting, and external stakeholders. Excel exports use **`openspout/openspout`** for fast, memory-efficient streaming so large historical exports don't OOM the worker.
-
-The dashboard is the artifact owners actually consume; the formal reports back it up when needed.
+**The Solution.** The database stores all counts and values at the egg level (pieces) as integers, but the presentation layer handles inputs entirely in physical trays. The system bridges these layers using a configurable `eggs_per_tray` constant (default 30).
+To prevent historic records from shifting if the `eggs_per_tray` constant is edited in the future, the system snapshots the active `eggs_per_tray` value onto each `daily_receivings` and `categorizations` record at save time, keeping historical calculation logs completely immutable.
 
 ---
 
-## 6. Importing Legacy Data
+## 4. Frozen Flag Snapshot Engine
 
-**The Problem.** Going live with no historical data would have left the dashboards empty for weeks before trends emerged. But importing years of paper-based logs cleanly is its own problem — the data is messy, inconsistent, and partially missing.
+**The Problem.** Flags are raised dynamically when discrepancies exceed settings thresholds (e.g., a disposal rate above 5% or a count variance greater than 1 tray). If the owner updates these threshold settings in the future, re-rendering old flags would cause their calculated metrics to shift, corrupting the historical audit logs.
 
-**The Solution.** A **staged import pipeline** with explicit validation rules: rows that pass cleanly are imported; rows with recoverable issues are flagged for review with a suggested correction; rows that can't be reconciled are quarantined for manual decision rather than silently dropped or guessed. The import is **idempotent** so it can be re-run as data quality improves.
+**The Solution.** We built a **Frozen Flag engine** where flags are generated server-side. When a flag is triggered, its severity, type, and impact quantity are captured. Crucially, the exact calculations, variables, and settings thresholds in play are frozen inside a JSON `calculation_snapshot` column. When the owner reviews a historical flag, the dashboard renders it using the frozen snapshot rather than live settings, preserving audit integrity.
 
 ---
 

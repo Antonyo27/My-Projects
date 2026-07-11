@@ -6,7 +6,7 @@ A high-level, sanitized overview of how the system runs in production. Specific 
 
 ## Topology
 
-A single-region deployment serving multiple physical locations (farms, warehouses, management offices) as users of a centralized web application.
+A single-region deployment serving owners and administrative operators of the poultry business.
 
 ```
                 ┌────────────────────────┐
@@ -23,7 +23,6 @@ A single-region deployment serving multiple physical locations (farms, warehouse
                   ┌─────────▼─────────┐
                   │  Laravel App      │
                   │  (PHP-FPM)        │
-                  │  + Queue workers  │
                   │  + Scheduler      │
                   └─────────┬─────────┘
                             │
@@ -32,17 +31,14 @@ A single-region deployment serving multiple physical locations (farms, warehouse
                   └───────────────────┘
 ```
 
-Every operational role — farm staff, warehouse staff, management — connects to the same centralized application from their respective locations. Multi-location separation is enforced **at the application layer** via RBAC and location scoping, not by deploying per-location instances.
-
 ---
 
 ## Process Supervision
 
 | Process | Purpose |
 |---------|---------|
-| **PHP-FPM** | Serves HTTP requests for the Laravel application |
-| **Queue workers** | Async jobs: PDF dispatch receipt generation, Excel export streaming, audit log persistence, scheduled rollups |
-| **Scheduler** | Daily yield rollups, in-transit anomaly sweeps, mortality trend recalculation |
+| **PHP-FPM** | Serves HTTP requests for the Laravel + Inertia application |
+| **Scheduler** | Performs daily operational date resets, background flag evaluation, and cleanup tasks |
 
 All processes are supervised so they restart automatically on crash or deploy.
 
@@ -52,7 +48,7 @@ All processes are supervised so they restart automatically on crash or deploy.
 
 The application is packaged as a **Docker image** and deployed via Docker Compose. This keeps local development, staging, and production environments identical, eliminating "works on my machine" friction across the engineering workflow.
 
-Dependencies (PHP version, Composer packages, Node + Vite for asset builds) are pinned in the image so deployments are deterministic.
+Dependencies (PHP 8.3 version, Composer packages, Node + Vite for Inertia/Vue asset builds) are pinned in the image so deployments are deterministic.
 
 ---
 
@@ -60,41 +56,29 @@ Dependencies (PHP version, Composer packages, Node + Vite for asset builds) are 
 
 The deployment flow:
 
-1. Lint + run tests
-2. Build production frontend assets via Vite
+1. Run backend tests (PHPUnit) and frontend linter
+2. Build production frontend assets via Vite (`npm run build`)
 3. Build the Docker image and tag it
-4. Deploy to the host: pull the new image, run `php artisan migrate --force`, restart workers, swap traffic
-5. Smoke-test the executive dashboard and a representative dispatch + receive flow before considering the deploy successful
+4. Deploy to the host: pull the new image, run `php artisan migrate --force`, restart PHP-FPM and Vite, swap traffic
+5. Smoke-test the single-screen dashboard and a daily reconciliation cycle before considering the deploy successful
 
-Migrations are gated behind a manual approval step in protected environments. Rollback is an image-tag swap.
-
----
-
-## Document Generation Path
-
-PDF dispatch receipts and operational reports are generated **server-side on demand** via:
-
-- **`barryvdh/laravel-dompdf`** — for PDF dispatch receipts and report exports
-- **`openspout/openspout`** — for fast, memory-efficient streaming Excel exports (critical for multi-year historical data exports that would otherwise OOM)
-- **`simplesoftwareio/simple-qrcode`** — for embedding QR codes in dispatch receipts
-
-These run inside dedicated queue workers so a long export never blocks the request thread.
+Migrations are gated behind a manual approval step in protected environments. Rollback is a simple image-tag swap.
 
 ---
 
 ## Backups & Disaster Recovery
 
-- **PostgreSQL** — nightly logical backups (`pg_dump`) shipped off-host with a retention window appropriate for the client's compliance and operational needs.
-- **Generated documents** — PDFs and Excel files are re-renderable from source data; only the source data needs to be backed up.
+- **PostgreSQL** — nightly logical backups (`pg_dump`) shipped off-host to secure storage with a weekly retention window.
+- **System States** — since all operational logs (receivings, categorizations, mortality, settings) are transaction-backed, the database holds the entire system state. No file uploads or document binaries need backing up.
 - **Restore drills** — periodic restore tests against a staging environment to verify backup integrity end-to-end.
 
 ---
 
 ## Observability
 
-- **Application logs** — structured JSON logs written to stdout, captured by the host journal.
-- **Audit logs** — every consequential action (dispatch, receive, breakage, RBAC change, configuration change) is written to a dedicated audit table with actor, timestamp, and before/after state.
-- **Health checks** — a lightweight health endpoint probed by external monitoring; alerts route to email + chat.
+- **Application logs** — structured Laravel logs written to storage, captured by the host system log viewer.
+- **Error monitoring** — lightweight error capturing on state-saving forms to track connection dropouts or validation exceptions.
+- **Health checks** — a lightweight health endpoint probed by external monitoring; alerts route to owner email.
 
 ---
 

@@ -1,81 +1,67 @@
 # Corporate Egg Production and Delivery Business
 
-> **Poultry Farm Management & Distribution System.**
+> **Poultry Farm Operations Monitoring & Reconciliation System.**
 > Confidential client project · Live in production.
 
 [![Status](https://img.shields.io/badge/Status-Confidential_Client-blue?style=flat-square)](#)
-[![Stack](https://img.shields.io/badge/Stack-Laravel_%2B_Livewire-FF2D20?style=flat-square&logo=laravel&logoColor=white)](#)
+[![Stack](https://img.shields.io/badge/Stack-Laravel_%2B_Inertia_%2B_Vue_3-FF2D20?style=flat-square&logo=laravel&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)](../../LICENSE)
 
 ---
 
 > **Note on Confidentiality.** This project was built under a confidentiality agreement with a private corporate client. The client name, branding, internal business rules, deployment specifics, and source code are **intentionally omitted**. What follows is a **generalized system overview** approved for portfolio demonstration only.
 
-<!--
-  Replace the placeholder below with a sanitized hero screenshot once available.
-  Make sure to redact client name, logos, real production data, and any branding before publishing.
--->
-
-![System hero](./screenshots/home-page.png)
+![System hero](./screenshots/dashboard_clean.png)
 
 ## System Overview
 
-A comprehensive, centralized **web-based Poultry Farm Management System** designed to digitize, streamline, and optimize the daily operations of a corporate egg production and delivery business. The system handles end-to-end farm processes — from **egg collection and flock management** to **warehouse inventory categorization, dispatch logistics, and high-level analytical reporting**.
+A centralized web-based **Poultry Farm Operations Monitoring & Reconciliation System** designed to digitize, streamline, and audit the daily operations of a corporate egg production business. The system acts as an owner-side control panel, tracking daily egg collection, receiving, warehouse sorting/categorization, and daily flock mortality, while automatically detecting inventory or data anomalies.
 
-The platform replaced manual logbooks and disconnected spreadsheets with a real-time digital solution, deployed across **multiple physical locations** (farms, warehouses, dispatch points) for a corporate agribusiness operator.
+The platform replaced manual paper logbooks and disconnected spreadsheets with a real-time digital solution, deployed on a centralized environment for a corporate agribusiness operator.
 
 ## Goal
 
-The primary goal was to **replace manual, error-prone tracking methods** with a secure, reliable, real-time digital platform.
+The primary goal was to **replace manual, error-prone spreadsheets** with a secure, reliable, real-time digital validation platform.
 
 Key objectives:
-
-- **Operational Efficiency** — Streamline communication between farm and warehouse by automating dispatch and receiving logs.
-- **Data Accuracy** — Use role-based access control to ensure users only interact with data relevant to their responsibilities, minimizing accidental corruption.
-- **Inventory Integrity** — Implement strict protocols like **blind receiving** in the warehouse to ensure accurate physical counts against system records.
-- **Actionable Intelligence** — Provide owners and management with comprehensive dashboards, automated PDF/Excel reporting, and visual analytics.
+- **Ledger Balancing** — Eliminate manual spreadsheets by recording daily farm deliveries and warehouse categorizations to instantly check for leaks or count mismatches.
+- **Anomalies Detection (Flag Engine)** — Automatically raise flags for discrepancies like delivery count variance (missing or excess eggs) and excessive disposal rates based on configurable thresholds.
+- **Flock Health Tracking** — Log daily mortality events to monitor overall flock wellness.
+- **Actionable Intelligence** — Provide the owner with a single-screen operational dashboard, detailed daily reconciliation reports, and monthly CSV exports.
 
 ## System Modules
 
-The system is **compartmentalized by user role**, ensuring each operational tier sees exactly what's relevant to them.
+The application provides a unified dashboard and modules scoped for owner reconciliation:
 
-### 1. Owner / Superadmin Module
+### 1. Reconciliation Dashboard
+- **Single-Screen Operations Check** — Instant review of today's workflow progress, bird mortality, and active high-severity flags.
+- **Date Navigation** — Move day-by-day to audit past logs, track state, and manage open flags.
+- **Connection Health** — Visual indicator of local connectivity, optimized for rural internet resilience.
 
-- **Executive Dashboard** — High-level overview of farm performance, production rates, and inventory metrics.
-- **User Management** — Complete control over system access, roles, and employee credentials.
-- **System Settings & Configuration** — Dynamic management of pricing structures, category rules, and system-wide flags.
-- **Comprehensive Reporting** — Automated PDF and Excel generation of operational reports.
-- **Flock & Loose Pool Management** — Strategic oversight of active flocks, mortality rates, and overall poultry lifecycle.
+### 2. Daily Receivings & Categorizations
+- **Farm Delivery Logging** — Record total trays received from farm operations for any selected business date.
+- **Warehouse Sorting** — Categorize received eggs by size/grade (Pewee, Pullets, Small, Medium, Large, Extra Large, Jumbo) and record cracked trays.
+- **Protected Disposal Class** — Log unsellable eggs as disposed, keeping them strictly separated from inventory rolls.
+- **Save-State Security** — Reusable form components with explicit `Saving... / Saved / Failed` states to survive weak rural connections.
 
-### 2. Farm Operations Module *(Farm Staff)*
+### 3. Flag Engine
+- **Checkpoint A Validation** — Instant verification that delivered eggs equal categorized + cracked + disposed eggs.
+- **Anomalies & Discrepancies** — Triggers flags for **Delivery Count Variance** (missing or excess eggs) and **Excessive Disposal Rates** based on configurable settings thresholds.
+- **Frozen History** — Stores flag impacts as immutable snapshots to maintain historical audit trail integrity.
 
-- **Egg Collection Tracking** — Real-time logging of daily production.
-- **Flock Management** — Detailed records per flock including health status and daily metrics.
-- **Mortality Logging** — Accurate tracking to enable immediate response to potential health issues.
-- **Dispatch Operations** — Secure generation of dispatch receipts (with PDF support) for transferring inventory to the warehouse.
-
-### 3. Warehouse Management Module *(Warehouse Staff)*
-
-- **Blind Receiving** — A secure receiving process requiring warehouse staff to physically count and categorize incoming deliveries **without prior knowledge of dispatched quantities**, ensuring maximum inventory accuracy.
-- **Categorization & Sorting** — Logging classification of eggs into predefined sizes/grades.
-- **Breakage Tracking** — Systemic logging of damaged goods to maintain accurate net inventory.
-- **Warehouse Activity Logs** — Detailed audit trails of all warehouse movements and adjustments.
-
-### 4. Point of Sale (POS) Module
-
-> *Core logic implemented; designed for future operational release.*
-
-- Streamlined sales interface for direct-to-customer or B2B transactions, integrated directly with current warehouse inventory levels.
-- Day-end closing reports and financial reconciliation.
+### 4. Mortality Logging & Reports
+- **Mortality Log** — Keep chronological counts of daily poultry mortality.
+- **Daily Reconciliation Report** — Single-day breakdown of all operational logs, flag summaries, and unit details.
+- **Settings Configuration** — Manage global constants like `eggs_per_tray` (silently converting physical trays to accounting eggs) and flag thresholds.
 
 ## How It Helps
 
 By integrating all facets of poultry farm management into a single platform, the system **significantly reduces administrative overhead**:
 
-- **Owners** monitor farm health in real time across multiple locations
-- **Farm workers** log data efficiently directly from the field
-- **Warehouse staff** maintain strict inventory control via the blind-receiving discipline
-- **Net result** — minimized waste, optimized production cycles, and increased overall profitability
+- **Owners** monitor farm health and ledger balances in real time from a single view.
+- **Data operators** enter logs efficiently, knowing the system handles tray-to-egg conversions automatically.
+- **The business** maintains strict inventory control via automatic discrepancy checks.
+- **Net result** — minimized waste, immediate discrepancy visibility, and increased operational confidence.
 
 ## Documentation
 
@@ -89,9 +75,19 @@ By integrating all facets of poultry farm management into a single platform, the
 
 ## Visual Artifacts
 
-- [`screenshots/`](./screenshots/) — UI captures (sanitized: client branding and real production data redacted)
-- [`architecture/`](./architecture/) — System design and module flow diagrams
-- [`demo/`](./demo/) — Walkthrough video and animated previews
+The system's interface captures (sanitized: client branding and real production data redacted):
+
+- [Login Page](./screenshots/login_page.png)
+- [Dashboard (Balanced/Clean State)](./screenshots/dashboard_clean.png)
+- [Dashboard (Missing Eggs Discrepancy)](./screenshots/dashboard_discrepancy.png)
+- [Dashboard (Excessive Disposal Warning)](./screenshots/dashboard_disposal_flag.png)
+- [Daily Receivings Log](./screenshots/receivings_index.png)
+- [Create Daily Receiving](./screenshots/receivings_create.png)
+- [Egg Categorization Form](./screenshots/categorizations_create.png)
+- [Mortality Logs](./screenshots/mortality_logs.png)
+- [Flags Overview](./screenshots/flags_index.png)
+- [Daily Reconciliation Report](./screenshots/daily_report.png)
+- [Settings & Thresholds](./screenshots/settings_index.png)
 
 ---
 

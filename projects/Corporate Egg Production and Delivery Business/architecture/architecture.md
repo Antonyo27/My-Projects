@@ -1,6 +1,6 @@
 # Corporate Egg Production & Delivery Business — System Architecture
 
-> A high-level architectural overview of the poultry farm management and distribution system.
+> A high-level architectural overview of the poultry farm operations monitoring and reconciliation system.
 > Client identity, branding, and proprietary business rules are intentionally omitted.
 > Diagrams render natively on GitHub via Mermaid.
 
@@ -8,207 +8,212 @@
 
 ## 1. System Overview
 
-This system is a **centralized, multi-location web application** built on the TALL stack (Tailwind, Alpine, Laravel, Livewire). Rather than deploying separate instances per location, a single application instance serves all physical sites — farms, warehouse, and sales points — with access scoped strictly by user role and location assignment at the application layer.
+This system is a **centralized web application** built on the **Laravel + Inertia.js + Vue 3** stack. The application acts as a single-tenant administrative dashboard. All operators connect to the same central database, ensuring real-time balancing of farm deliveries and sorting metrics, with built-in resilience for weak rural internet connections.
 
 ```mermaid
 graph TB
     subgraph Users
-        FARM[Farm Staff<br/>Mobile / Tablet]
-        WH[Warehouse Staff<br/>Desktop]
-        MGR[Management<br/>Dashboard & Reports]
-        OWNER[Owner / Superadmin<br/>Full System Access]
+        OWNER[Owners / Operators<br/>Mobile · Tablet · Desktop]
     end
 
     subgraph Infra["Hosted Infrastructure"]
         NGINX[Nginx Reverse Proxy<br/>TLS Termination]
 
         subgraph App["Laravel Application (PHP 8.3)"]
-            WEB[Web Routes<br/>Livewire Components]
-            Q[Queue Workers<br/>PDF · Excel Report Generation]
+            WEB[Web Routes<br/>Inertia.js + Vue 3 Pages]
+            SCHED[Scheduler<br/>Active Flag Scans]
         end
 
         DB[(PostgreSQL<br/>Primary Datastore)]
     end
 
-    FARM & WH & MGR & OWNER --> NGINX
+    OWNER --> NGINX
     NGINX --> WEB
     WEB <--> DB
-    Q <--> DB
 ```
 
 ---
 
-## 2. Role-Based Access & Module Visibility
+## 2. Operational Modules
 
-Each operational tier interacts only with the modules relevant to their responsibilities. Access is enforced at both the routing layer and the application policy layer.
+Since all authenticated accounts share administrative reconciliation access, the system modules are organized around the daily audit workflow:
 
 ```mermaid
 graph LR
-    subgraph Roles
-        OWNER[Owner / Superadmin]
-        ADMIN[Manager / Admin]
-        FSTAFF[Farm Staff]
-        WSTAFF[Warehouse Staff]
-        CASHIER[Cashier]
-    end
-
     subgraph Modules
-        EXEC[Executive Dashboard<br/>& Analytics]
-        USERMGMT[User Management]
-        SETTINGS[System Configuration<br/>Pricing · Category Rules]
-        REPORTS[Report Generation<br/>PDF · Excel]
-        FLOCK[Flock & Batch Management]
-        COLLECTION[Egg Collection Logging]
-        DISPATCH[Dispatch Operations]
-        RECEIVING[Warehouse Receiving]
-        CATEGORIZE[Categorization & Sorting]
-        BREAKAGE[Breakage Logging]
-        POS[Point of Sale]
+        DASH[Dashboard<br/>Workflow & Flags]
+        REC[Daily Receivings<br/>Farm Trays Input]
+        CAT[Categorizations<br/>Warehouse Sizes sorting]
+        MORT[Mortality Log<br/>Flock Health counts]
+        FLAGS[Flag Engine<br/>Discrepancy validation]
+        REP[Reports<br/>Daily Summary & CSV exports]
+        SET[Settings<br/>Thresholds & Egg sizes]
     end
 
-    OWNER --> EXEC & USERMGMT & SETTINGS & REPORTS & FLOCK & COLLECTION & DISPATCH & RECEIVING & CATEGORIZE & BREAKAGE & POS
-    ADMIN --> EXEC & REPORTS & FLOCK & COLLECTION & DISPATCH & RECEIVING & CATEGORIZE & BREAKAGE
-    FSTAFF --> COLLECTION & DISPATCH
-    WSTAFF --> RECEIVING & CATEGORIZE & BREAKAGE
-    CASHIER --> POS
+    DASH --> REC & CAT & MORT & FLAGS & REP & SET
 ```
 
 ---
 
-## 3. Core Operational Flow — Farm to Warehouse
+## 3. Core Operational Flow — Farm to Reconciliation
 
-The system enforces a **paired dispatch / receive model** with explicit inventory state transitions. A key control: warehouse staff perform **blind receiving** — they physically count and categorize an incoming delivery without prior knowledge of the dispatched quantity, ensuring maximum inventory accuracy.
+The daily workflow uses the **Asia/Manila business date** as its primary scope. Data operators log daily farm collections and warehouse sorting counts. The system then automatically converts trays to eggs and reconciles the counts via **Checkpoint A**:
 
 ```mermaid
 flowchart TD
     subgraph Farm Operations
-        A[Log Daily Egg Collection<br/>Per Flock / Batch]
-        B[Record Flock Health<br/>& Mortality]
-        C[Generate Dispatch Receipt<br/>QR Code Embedded]
-        D[Mark Shipment In Transit]
+        A[Farm Staff Report Daily Collections<br/>to Owner via Messenger]
     end
 
-    subgraph Warehouse Operations
-        E[Scan Dispatch Receipt QR]
-        F[Blind Physical Count<br/>No Quantity Visible Yet]
-        G[Commit Received Quantities<br/>System Reveals Dispatched Qty]
-        H[Auto-Detect Discrepancies]
-        I[Categorize by Grade/Size]
-        J[Log Breakage]
-        K[Inventory Updated]
+    subgraph Owner Actions
+        B[Log Daily Receivings<br/>in Trays]
+        C[Log Categorizations<br/>per Size/Grade]
+        D[Log Daily Mortality<br/>counts]
     end
 
-    subgraph Reporting
-        L[Owner Views Dashboard<br/>Aggregated Multi-Location]
-        M[Export PDF / Excel Reports<br/>Automated via Queue Jobs]
+    subgraph Validation Engine
+        E[Convert Trays to Eggs<br/>using Settings constant]
+        F[Run Checkpoint A<br/>compare Receivings vs. Sorted]
+        G{Discrepancy Found?}
+        H[Trigger Count Variance Flag<br/>or Disposal Rate Flag]
+        I[Clean Daily Status]
     end
 
-    A --> C --> D --> E --> F --> G --> H --> I --> J --> K
-    B --> A
-    K --> L --> M
+    subgraph Analytics
+        J[View Dashboard Summary]
+        K[Export Monthly CSV Reports]
+    end
+
+    A --> B --> C --> D
+    C --> E --> F --> G
+    G -- Yes --> H --> J
+    G -- No --> I --> J
+    J --> K
 ```
 
 ---
 
-## 4. Document Generation Architecture
+## 4. Save-State Form Architecture
 
-Dispatch receipts and operational reports are generated **server-side via queue jobs** — no client-side document assembly. This keeps generation off the request cycle and allows large multi-year exports without timeout risk.
+To prevent data loss on weak rural internet connections, all data-entry forms implement a **Save-State design pattern**. Operations are executed through Inertia.js with explicit visual states:
 
 ```mermaid
 sequenceDiagram
-    participant User as Staff / Owner
-    participant Livewire as Livewire Component
-    participant Queue as Queue Worker
-    participant PDF as dompdf / OpenSpout
-    participant Storage as File Storage
+    participant User as Operator
+    participant Vue as SaveStateForm (Vue 3)
+    participant Server as Laravel Controller
+    participant DB as PostgreSQL
 
-    User->>Livewire: Request PDF/Excel Export
-    Livewire->>Queue: Dispatch GenerateReport Job
-    Livewire-->>User: "Report is being generated..."
-    Queue->>PDF: Compile Template + Data
-    PDF->>Storage: Save Generated File
-    Queue-->>User: Notify — Download Ready
-    User->>Storage: Download File
+    User->>Vue: Type input & click Save
+    Vue->>Vue: Set state: "Saving..."
+    Vue->>Server: Send POST/PUT via Inertia
+    alt Connection Success
+        Server->>DB: Write/Update records
+        DB-->>Server: Done
+        Server-->>Vue: Return Redirect (Success)
+        Vue->>Vue: Set state: "Saved" (Green badge)
+    else Connection Loss / Database Error
+        Server--xVue: Request Timeout / Failure
+        Vue->>Vue: Set state: "Failed" (Red alert)
+        Vue-->>User: Enable "Retry" button
+    end
 ```
 
 ---
 
-## 5. Entity Relationship (High-Level)
+## 5. Entity Relationship Diagram (ERD)
+
+The database schema is structured for strict validation and data integrity:
 
 ```mermaid
 erDiagram
-    BATCH {
-        uuid id PK
-        string batch_code
-        enum status
-        date started_at
-    }
-    BATCH_CATEGORY {
-        uuid id PK
-        uuid batch_id FK
-        string category_label
-        int quantity_pieces
-    }
-    INVENTORY_TRANSACTION {
-        uuid id PK
-        uuid batch_category_id FK
-        enum type
-        int quantity_pieces
-        timestamp created_at
-    }
-    DISPATCH {
-        uuid id PK
-        uuid batch_id FK
-        uuid farm_location_id FK
-        enum status
-        string qr_code_token
-    }
-    DISPATCH_ITEM {
-        uuid id PK
-        uuid dispatch_id FK
-        string category_label
-        int quantity_pieces
-    }
-    SALE {
-        uuid id PK
-        uuid location_id FK
-        uuid user_id FK
-        decimal total_amount
-    }
-    SALE_ITEM {
-        uuid id PK
-        uuid sale_id FK
-        uuid batch_category_id FK
-        int quantity_pieces
-    }
-    PRICE {
-        uuid id PK
-        string category_label
-        int unit_price_centavos
-        date effective_from
-        date effective_until
-    }
-    FLAG {
-        uuid id PK
-        uuid transaction_id FK
-        string details
-        enum status
-    }
-    USER {
-        uuid id PK
+    users {
+        bigint id PK
+        string name
         string email
-        enum role
-        uuid location_id FK
+        string password
+        timestamp email_verified_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    egg_sizes {
+        bigint id PK
+        string slug
+        string name
+        int display_order
+        boolean is_disposal
+        timestamp created_at
+        timestamp updated_at
+    }
+    settings {
+        bigint id PK
+        string key UNIQUE
+        string value
+        string label
+        string group
+        string type
+        timestamp created_at
+        timestamp updated_at
+    }
+    daily_receivings {
+        bigint id PK
+        date date UNIQUE
+        int received_trays
+        int eggs_per_tray_snapshot
+        text source_notes
+        bigint user_id FK
+        timestamp deleted_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    mortality_logs {
+        bigint id PK
+        date date UNIQUE
+        int count
+        text notes
+        bigint user_id FK
+        timestamp deleted_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    categorizations {
+        bigint id PK
+        date date
+        bigint egg_size_id FK
+        int trays
+        int eggs_per_tray_snapshot
+        bigint user_id FK
+        timestamp deleted_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    flags {
+        bigint id PK
+        date date
+        string type
+        string severity
+        string status
+        string flagable_type
+        bigint flagable_id
+        text message
+        decimal impact_quantity
+        string impact_unit
+        json calculation_snapshot
+        json metadata
+        text investigation_notes
+        bigint resolved_by FK
+        timestamp resolved_at
+        timestamp superseded_at
+        bigint user_id FK
+        timestamp created_at
+        timestamp updated_at
     }
 
-    BATCH ||--o{ BATCH_CATEGORY : "categorized into"
-    BATCH_CATEGORY ||--o{ INVENTORY_TRANSACTION : "tracks via"
-    BATCH ||--o{ DISPATCH : "dispatched as"
-    DISPATCH ||--o{ DISPATCH_ITEM : "contains"
-    SALE ||--o{ SALE_ITEM : "contains"
-    SALE_ITEM }o--|| BATCH_CATEGORY : "draws from"
-    INVENTORY_TRANSACTION ||--o| FLAG : "may flag"
-    USER }o--|| SALE : "records"
+    users ||--o{ daily_receivings : "creates"
+    users ||--o{ mortality_logs : "creates"
+    users ||--o{ categorizations : "creates"
+    users ||--o{ flags : "creates/resolves"
+    egg_sizes ||--o{ categorizations : "categorizes into"
 ```
 
 ---
@@ -217,13 +222,12 @@ erDiagram
 
 | Decision | Rationale |
 |---|---|
-| **Centralized single deployment** | All locations share one application instance with role + location scoping enforced at the application layer — no per-site deployments to maintain. |
-| **Blind receiving discipline** | Server hides dispatched quantities until warehouse staff commit their physical count. Eliminates confirmation bias and ensures true independent verification. |
-| **Append-only transactional tables** | Core transactional records (`BatchCategory`, `InventoryTransaction`, `SaleItem`) are immutable after creation. Corrections are made via new compensating records, not edits — preserving a complete audit trail. |
-| **Integer centavos for money** | All monetary values stored as integers (centavos). No floating-point arithmetic near financial data. |
-| **Integer pieces for quantities** | All egg quantities stored as integer pieces. Display layer converts to tray + piece format as needed. |
-| **UUID primary keys** | All domain tables use UUID v4 PKs, preventing enumerable ID attacks and supporting future distributed scenarios. |
-| **Queue-dispatched document generation** | PDF and Excel generation is always handled by background workers — never on the HTTP request cycle. |
+| **Centralized single-tenant deployment** | Deployed as a single tenant serving trusted operators. Avoids tenant complexity while maintaining high performance. |
+| **Asia/Manila business date** | All operational records use the Manila business calendar date, not `created_at`. This aligns the digital ledger with real-world farm collection periods. |
+| **Unit conversion at the egg level** | The user inputs all counts in physical trays (whole units). The system converts trays → eggs internally using `eggs_per_tray` to allow fractional losses and disposal sorting. |
+| **Settings snapshotting** | To ensure data integrity, settings parameters like `eggs_per_tray_snapshot` are copied directly to the `daily_receivings` and `categorizations` tables at the moment of saving. |
+| **Frozen Flag Snapshots** | Active flags freeze the variables and thresholds used during calculation inside `flags.calculation_snapshot`. This prevents old flags from changing their values if settings thresholds are adjusted later. |
+| **Check constraints** | PostgreSQL table constraints enforce that quantities like `received_trays`, `trays` (sorting), and `count` (mortality) are strictly non-negative. |
 
 ---
 

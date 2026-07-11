@@ -9,40 +9,33 @@ A complete breakdown of the technologies powering this system, with rationale fo
 | Layer | Technology | Why |
 |-------|------------|-----|
 | **Language** | PHP 8.3 | Modern PHP with strict types, enums, and attributes — production-grade language semantics |
-| **Framework** | Laravel | Mature ecosystem with first-class queue, scheduler, and PDF/export integrations |
-| **Database** | PostgreSQL | Strong transactional guarantees for inventory writes; rich query capabilities for analytics |
+| **Framework** | Laravel 13 | Secure, mature framework with robust session management, validation pipelines, and routing |
+| **Database** | PostgreSQL | Enterprise relational database with transactional guarantees for inventory reconciliation writes |
 
 ## Frontend
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| **Reactive UI** | Livewire (v4.x) | Server-driven components — keeps the source of truth on the server where it belongs |
-| **Styling** | Tailwind CSS (v4.x) | Utility-first, design-system-friendly, tiny production bundles |
-| **Build Tool** | Vite | Fast HMR in development, hashed production builds |
-| **Data Visualization** | Chart.js | Interactive executive dashboards — production comparisons, mortality trends, breakage analytics |
+| **Framework** | Inertia.js | Builds single-page apps without client-side API routing. Keeps the controller as the single source of truth |
+| **View Layer** | Vue 3 | Component-driven reactive UI. Perfect for dense forms, status checks, and data management |
+| **Styling** | Tailwind CSS (v4.x) | Utility-first CSS, compiling into high-performance styles with instant page loading |
+| **Build Tool** | Vite | Ultra-fast Hot Module Replacement (HMR) and optimized, hashed production assets |
+| **Data Visualization** | Chart.js | Renders responsive metrics, mortality logs, and trend analyses directly on the dashboard |
 
 ## Key Libraries & Integrations
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| **PDF Generation** | `barryvdh/laravel-dompdf` | Server-side PDF for **dispatch receipts** and **operational reports** |
-| **Excel Import / Export** | `openspout/openspout` | **Memory-efficient streaming** — critical for multi-year historical exports that would otherwise OOM |
-| **QR Code Generation** | `simplesoftwareio/simple-qrcode` | Embedded codes on dispatch receipts for **scan-and-verify** at warehouse receiving |
-
-## Infrastructure & DevOps
-
-| Layer | Technology |
-|-------|------------|
-| **Containerization** | Docker + Docker Compose |
-| **Reverse Proxy** | Nginx |
-| **TLS** | Let's Encrypt |
+| **Route Sharing** | `tightenco/ziggy` | Shares Laravel backend routes directly with Vue components for clean, standard API communication |
 
 ## Architecture Highlights
 
-- **Centralized application** with RBAC + location scoping enforced at the application layer (not per-location deployments).
-- **Server-side document generation** via Livewire-triggered queue jobs — no client-side document assembly.
-- **Paired dispatch / receive event model** with explicit `dispatched`, `in_transit`, and `received` states for full inventory traceability.
-- **Blind-receiving discipline** — server-side data hiding prevents receivers from seeing dispatch quantities until after they commit their physical count.
+- **Single-Tenant Application** — Deployed as a single tenant where authenticated logins represent trusted operators with equal system credentials.
+- **Two Reconciliation Checkpoints** — Silently performs dual audit loops:
+  - **Checkpoint A (Upstream)**: Checks if Daily Receivings match warehouse categorizations.
+  - **Checkpoint B (Downstream)**: Focuses on tracking flock health, mortality rates, and overall yield balances.
+- **Rural-Internet Resilience (Save-State Form Pattern)** — Reusable frontend forms with explicit `Saving... / Saved / Failed - Retry` feedback loops to guarantee no data loss on unstable rural connections.
+- **Snapshotted Calculations** — To prevent historical data drift when pricing or conversion configurations change, all settings constants (like `eggs_per_tray`) are copied directly onto operational logs during creation.
 
 ---
 
