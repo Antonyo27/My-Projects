@@ -54,6 +54,8 @@ This repository is a curated showcase of my work — system overviews, case stud
 **Frontend**
 
 ![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
+![React Native](https://img.shields.io/badge/React_Native-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Expo](https://img.shields.io/badge/Expo-000000?style=flat-square&logo=expo&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)
 ![Livewire](https://img.shields.io/badge/Livewire-4E56A6?style=flat-square&logo=laravel&logoColor=white)
 ![Alpine.js](https://img.shields.io/badge/Alpine.js-8BC0D0?style=flat-square&logo=alpinedotjs&logoColor=black)
@@ -161,6 +163,25 @@ Centralized web application digitizing daily operations for a multi-location pou
 
 </td>
 </tr>
+<tr>
+<td width="50%" valign="top">
+
+### [UECFI](./projects/UECFI/)
+
+**Church Hymnal & Lyrics Mobile Application**
+
+> Independent Project · Resume-Featured
+
+Offline-first cross-platform mobile hymnal with a custom in-memory chord transposition engine, persistent SQLite database caching, and secure remote catalog syncing with Firestore.
+
+**Stack:** React Native (Expo) · TypeScript · SQLite (expo-sqlite) · Firebase Firestore / Auth · Zustand
+
+[Read full case study →](./projects/UECFI/docs/case-study.md)
+
+</td>
+<td width="50%" valign="top">
+</td>
+</tr>
 </table>
 
 ---
@@ -221,6 +242,7 @@ my-projects/
 ├── projects/
 │   ├── ScanServe/               # Independent · Queue Management System
 │   ├── EggFlow/                 # Independent · Agribusiness Platform
+│   ├── UECFI/                   # Independent · Church Hymnal & Lyrics App
 │   ├── Local Computer Retail Business/         # Confidential · Live
 │   └── Corporate Egg Production and Delivery Business/  # Confidential · Live
 ├── templates/                   # Reusable README and case-study scaffolds
