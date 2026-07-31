@@ -25,6 +25,7 @@ $RECYCLE.BIN/
 .windsurf/
 .cursor/
 .aider*
+.agents/
 
 # Temporary / scratch files
 *.tmp
