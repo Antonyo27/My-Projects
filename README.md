@@ -9,9 +9,9 @@
 
 # Mark Anthony Resoso
 
-### Full-Stack Developer · Laravel · React · Express · PostgreSQL
+### Software Engineer | AI Automation Specialist
 
-Tacurong, Sultan Kudarat, Philippines
+Open to Remote
 
 [![Portfolio](https://img.shields.io/badge/Portfolio-antonyorss.me-0A66C2?style=for-the-badge&logo=googlechrome&logoColor=white)](https://antonyorss.me/)
 [![Email](https://img.shields.io/badge/Email-resoso.mark.anthony27%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:resoso.mark.anthony27@gmail.com)
@@ -24,7 +24,7 @@ Tacurong, Sultan Kudarat, Philippines
 
 ## About
 
-Full-stack developer with professional software engineering experience building **production systems in Laravel, Express.js, Livewire, React, and PostgreSQL**. I've shipped backend APIs and role-based access control now serving live government workflows, and independently delivered two end-to-end full-stack web applications.
+Software engineer and AI automation specialist with professional software engineering experience building **production systems in Laravel, Express.js, React, and PostgreSQL**, alongside **AI agent workflows and automation pipelines (Claude Code, MCP, n8n, Zapier)**. I've shipped backend APIs and role-based access control serving live government workflows, delivered independent production web applications, and engineered automated business workflows.
 
 This repository is a curated showcase of my work — system overviews, case studies, architectural notes, and screenshots — without exposing proprietary client source code. For deeper conversations about implementation details, code samples, or live demos, **please reach out directly**.
 
@@ -198,10 +198,10 @@ Offline-first cross-platform mobile hymnal with a custom in-memory chord transpo
 - Mentored **5 fellow interns** on the Laravel request lifecycle, MVC architecture, and backend best practices — all of whom progressed to shipping production features.
 - Represented engineering in client-facing BARMM stakeholder meetings.
 
-### Freelance Full-Stack Developer · *Self-Employed*
-**Tacurong, Philippines** · January 2025 – Present
+### Software Engineer | AI Automation Specialist · *Syndrix (Project-Based)*
+**Remote** · May 2024 – Present
 
-End-to-end ownership across requirements gathering, database design, backend APIs, frontend UI, deployment, and post-launch support for two production client systems (showcased above).
+End-to-end ownership across requirements gathering, database design, backend APIs, frontend UI, deployment, and post-launch support for client and product production systems (showcased above).
 
 ---
 
@@ -270,7 +270,7 @@ Filipino *(Native)* · English *(Professional Working Proficiency)*
 
 ## Contact
 
-I'm open to **full-stack developer roles** where I can contribute across backend, frontend, and deployment layers. If you're hiring or have a project in mind:
+I'm open to **Software Engineer & AI Automation Specialist roles** where I can contribute across backend, frontend, deployment, and AI automation layers. If you're hiring or have a project in mind:
 
 - **Email:** [resoso.mark.anthony27@gmail.com](mailto:resoso.mark.anthony27@gmail.com)
 - **Phone:** +63 976 466 5670
